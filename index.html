@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#101113" />
+        <title>Deck Archive — YDKE Card Downloader</title>
+        <link rel="preconnect" href="https://images.ygoprodeck.com" />
+        <link rel="stylesheet" href="/styles.css" />
+        <script src="/app.js" defer></script>
+    </head>
+    <body>
+        <header class="topbar">
+            <a class="brand" href="/" aria-label="Deck Archive home">
+                <span class="brand-mark">D</span>
+                <span>DECK<span class="brand-light">ARCHIVE</span></span>
+            </a>
+            <span class="topbar-note"
+                ><span class="status-dot"></span> YDKE TOOLKIT</span
+            >
+        </header>
+
+        <main>
+            <section class="intro">
+                <p class="eyebrow">YOUR DECK, IN FULL DETAIL</p>
+                <h1>Bring your deck<br />into <span>focus.</span></h1>
+                <p class="intro-copy">
+                    Paste a YDKE link to preview every card, then save the full
+                    deck as a tidy image archive.
+                </p>
+            </section>
+
+            <section class="input-panel" aria-labelledby="input-title">
+                <div class="panel-heading">
+                    <div>
+                        <p class="eyebrow">01 / DECK LINK</p>
+                        <h2 id="input-title">Paste your YDKE</h2>
+                    </div>
+                    <span class="format-tag">YDKE FORMAT</span>
+                </div>
+                <form id="deck-form">
+                    <label class="sr-only" for="ydke-input"
+                        >YDKE deck link</label
+                    >
+                    <textarea
+                        id="ydke-input"
+                        placeholder="ydke://...!…!…!"
+                        spellcheck="false"
+                        required
+                    ></textarea>
+                    <div class="form-footer">
+                        <span class="hint"
+                            >Main, Extra, and Side Deck sections are
+                            supported.</span
+                        >
+                        <button
+                            class="primary-button"
+                            id="load-button"
+                            type="submit"
+                        >
+                            <span>Show my deck</span
+                            ><span aria-hidden="true">↗</span>
+                        </button>
+                    </div>
+                </form>
+                <p
+                    id="message"
+                    class="message"
+                    role="status"
+                    aria-live="polite"
+                ></p>
+            </section>
+
+            <section id="deck-section" class="deck-section" hidden>
+                <div class="deck-heading">
+                    <div>
+                        <p class="eyebrow">02 / YOUR CARDS</p>
+                        <h2>
+                            Your deck
+                            <span id="deck-count" class="count-pill"></span>
+                        </h2>
+                    </div>
+                    <button
+                        id="download-button"
+                        class="download-button"
+                        type="button"
+                    >
+                        <span class="download-icon" aria-hidden="true">↓</span>
+                        <span
+                            ><strong>Download all</strong
+                            ><small>ZIP · card images</small></span
+                        >
+                    </button>
+                </div>
+                <div id="deck-groups"></div>
+            </section>
+        </main>
+        <footer>
+            <span>DECK ARCHIVE</span
+            ><span>Card data &amp; images by YGOPRODeck</span>
+        </footer>
+    </body>
+</html>
