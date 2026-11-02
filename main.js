@@ -8,7 +8,6 @@ const PORT = Number(process.env.PORT) || 3000;
 const ROOT = __dirname;
 const CARD_API = "https://db.ygoprodeck.com/api/v7/cardinfo.php";
 const IMAGE_HOST = "https://images.ygoprodeck.com/images/cards/";
-const MAX_DECK_SIZE = 150;
 const STATIC_FILES = new Set(["/index.html", "/app.js", "/styles.css"]);
 
 function sendJson(response, status, value) {
@@ -59,7 +58,6 @@ function validateIds(ids) {
   return (
     Array.isArray(ids) &&
     ids.length > 0 &&
-    ids.length <= MAX_DECK_SIZE &&
     ids.every((id) => Number.isSafeInteger(id) && id > 0 && id <= 0xffffffff)
   );
 }
@@ -104,12 +102,46 @@ async function fetchCardImage(id, card) {
 }
 
 async function handleApi(request, response, url) {
+  if (request.method === "GET" && url.pathname === "/api/search") {
+    const query = (url.searchParams.get("q") || "").trim();
+    if (query.length < 2 || query.length > 80) {
+      sendJson(response, 400, {
+        error: "Search terms must be between 2 and 80 characters.",
+      });
+      return;
+    }
+
+    try {
+      const result = await axios.get(CARD_API, {
+        params: { fname: query, num: 24, offset: 0 },
+        timeout: 15000,
+      });
+      const cards = (result.data.data || []).map((card) => ({
+        id: card.id,
+        name: card.name,
+        type: card.type,
+        imageUrl: card.card_images?.[0]?.image_url || null,
+        imageSmallUrl: card.card_images?.[0]?.image_url_small || null,
+      }));
+      sendJson(response, 200, { cards });
+    } catch (error) {
+      if (error.response?.status === 400) {
+        sendJson(response, 200, { cards: [] });
+        return;
+      }
+      sendJson(response, 502, {
+        error: "Card search is unavailable. Please try again.",
+      });
+    }
+    return;
+  }
+
   if (request.method === "GET" && url.pathname === "/api/cards") {
     const idParam = url.searchParams.get("ids") || "";
     const ids = idParam.split(",").filter(Boolean).map(Number);
     if (!validateIds(ids)) {
       sendJson(response, 400, {
-        error: "Provide between 1 and 150 valid card IDs.",
+        error: "Provide at least one valid card ID.",
       });
       return;
     }
@@ -139,7 +171,7 @@ async function handleApi(request, response, url) {
 
     if (!validateIds(body.ids)) {
       sendJson(response, 400, {
-        error: "Provide between 1 and 150 valid card IDs.",
+        error: "Provide at least one valid card ID.",
       });
       return;
     }

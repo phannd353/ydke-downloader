@@ -30,14 +30,94 @@
                 </p>
             </section>
 
-            <section class="input-panel" aria-labelledby="input-title">
-                <div class="panel-heading">
-                    <div>
-                        <p class="eyebrow">01 / DECK LINK</p>
-                        <h2 id="input-title">Paste your YDKE</h2>
+            <section class="workspace" aria-label="Deck editor">
+                <aside class="search-panel" aria-labelledby="search-title">
+                    <div class="panel-heading">
+                        <div>
+                            <p class="eyebrow">CARD DATABASE</p>
+                            <h2 id="search-title">Search cards</h2>
+                        </div>
+                        <span class="format-tag">YGOPRODECK</span>
                     </div>
-                    <span class="format-tag">YDKE FORMAT</span>
-                </div>
+                    <form id="search-form" role="search">
+                        <label class="sr-only" for="search-input"
+                            >Search cards by name</label
+                        >
+                        <input
+                            id="search-input"
+                            type="search"
+                            placeholder="Try “Blue-Eyes”…"
+                            autocomplete="off"
+                            minlength="2"
+                            maxlength="80"
+                        />
+                    </form>
+                    <div class="search-options">
+                        <label for="add-target">Add cards to</label>
+                        <select id="add-target">
+                            <option value="main">Main Deck</option>
+                            <option value="extra">Extra Deck</option>
+                            <option value="side">Side Deck</option>
+                        </select>
+                    </div>
+                    <p id="search-status" class="search-status" role="status">
+                        Enter at least 2 characters to search.
+                    </p>
+                    <div id="search-results" class="search-results"></div>
+                </aside>
+
+                <section class="editor-panel" aria-labelledby="editor-title">
+                    <div class="deck-heading">
+                        <div>
+                            <p class="eyebrow">DECK BUILDER</p>
+                            <h2>
+                                <span id="editor-title">Your deck</span>
+                                <span id="deck-count" class="count-pill"
+                                    >0 cards</span
+                                >
+                            </h2>
+                        </div>
+                        <div class="deck-actions">
+                            <button
+                                id="export-button"
+                                class="secondary-button"
+                                type="button"
+                                disabled
+                            >
+                                Copy YDKE
+                            </button>
+                            <button
+                                id="download-button"
+                                class="download-button"
+                                type="button"
+                                disabled
+                            >
+                                <span class="download-icon" aria-hidden="true"
+                                    >↓</span
+                                >
+                                <span
+                                    ><strong>Download all</strong
+                                    ><small>ZIP · card images</small></span
+                                >
+                            </button>
+                        </div>
+                    </div>
+                    <div id="deck-groups"></div>
+                    <p class="empty-deck">
+                        Search for cards and add them to start building.
+                    </p>
+                </section>
+            </section>
+
+            <p
+                id="message"
+                class="message"
+                role="status"
+                aria-live="polite"
+            ></p>
+
+            <details class="import-panel">
+                <summary>Import an existing YDKE deck</summary>
                 <form id="deck-form">
                     <label class="sr-only" for="ydke-input"
                         >YDKE deck link</label
@@ -50,51 +130,36 @@
                     ></textarea>
                     <div class="form-footer">
                         <span class="hint"
-                            >Main, Extra, and Side Deck sections are
-                            supported.</span
+                            >Imports Main, Extra, and Side Deck sections.</span
                         >
                         <button
                             class="primary-button"
                             id="load-button"
                             type="submit"
                         >
-                            <span>Show my deck</span
+                            <span>Load deck</span
                             ><span aria-hidden="true">↗</span>
                         </button>
                     </div>
                 </form>
-                <p
-                    id="message"
-                    class="message"
-                    role="status"
-                    aria-live="polite"
-                ></p>
-            </section>
-
-            <section id="deck-section" class="deck-section" hidden>
-                <div class="deck-heading">
-                    <div>
-                        <p class="eyebrow">02 / YOUR CARDS</p>
-                        <h2>
-                            Your deck
-                            <span id="deck-count" class="count-pill"></span>
-                        </h2>
-                    </div>
-                    <button
-                        id="download-button"
-                        class="download-button"
-                        type="button"
-                    >
-                        <span class="download-icon" aria-hidden="true">↓</span>
-                        <span
-                            ><strong>Download all</strong
-                            ><small>ZIP · card images</small></span
-                        >
-                    </button>
-                </div>
-                <div id="deck-groups"></div>
-            </section>
+            </details>
         </main>
+        <dialog id="card-preview" class="card-preview">
+            <div class="card-preview-content">
+                <button
+                    class="card-preview-close"
+                    type="button"
+                    aria-label="Close card preview"
+                >
+                    ×
+                </button>
+                <img class="card-preview-image" alt="" />
+                <div class="card-preview-caption">
+                    <h2 class="card-preview-name"></h2>
+                    <p class="card-preview-type"></p>
+                </div>
+            </div>
+        </dialog>
         <footer>
             <span>DECK ARCHIVE</span
             ><span>Card data &amp; images by YGOPRODeck</span>
