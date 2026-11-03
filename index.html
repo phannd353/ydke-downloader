@@ -87,6 +87,14 @@
                                 Copy YDKE
                             </button>
                             <button
+                                id="pdf-button"
+                                class="secondary-button"
+                                type="button"
+                                disabled
+                            >
+                                Export PDF
+                            </button>
+                            <button
                                 id="download-button"
                                 class="download-button"
                                 type="button"
@@ -132,14 +140,23 @@
                         <span class="hint"
                             >Imports Main, Extra, and Side Deck sections.</span
                         >
-                        <button
-                            class="primary-button"
-                            id="load-button"
-                            type="submit"
-                        >
-                            <span>Load deck</span
-                            ><span aria-hidden="true">↗</span>
-                        </button>
+                        <div class="import-actions">
+                            <button
+                                class="primary-button"
+                                id="load-button"
+                                type="submit"
+                            >
+                                <span>Load deck</span
+                                ><span aria-hidden="true">↗</span>
+                            </button>
+                            <button
+                                class="secondary-button"
+                                id="merge-button"
+                                type="button"
+                            >
+                                Merge YDKE
+                            </button>
+                        </div>
                     </div>
                 </form>
             </details>

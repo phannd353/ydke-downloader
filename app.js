@@ -2,6 +2,7 @@ const form = document.getElementById("deck-form");
 const input = document.getElementById("ydke-input");
 const message = document.getElementById("message");
 const loadButton = document.getElementById("load-button");
+const mergeButton = document.getElementById("merge-button");
 const searchForm = document.getElementById("search-form");
 const searchInput = document.getElementById("search-input");
 const searchStatus = document.getElementById("search-status");
@@ -10,6 +11,7 @@ const addTarget = document.getElementById("add-target");
 const deckGroups = document.getElementById("deck-groups");
 const deckCount = document.getElementById("deck-count");
 const exportButton = document.getElementById("export-button");
+const pdfButton = document.getElementById("pdf-button");
 const downloadButton = document.getElementById("download-button");
 const cardPreview = document.getElementById("card-preview");
 const cardPreviewImage = cardPreview.querySelector(".card-preview-image");
@@ -205,6 +207,7 @@ function renderDeck() {
   const ids = allDeckIds();
   deckCount.textContent = `${ids.length} ${ids.length === 1 ? "card" : "cards"}`;
   exportButton.disabled = ids.length === 0;
+  pdfButton.disabled = ids.length === 0;
   downloadButton.disabled = ids.length === 0;
   document.querySelector(".empty-deck").hidden = ids.length !== 0;
 
@@ -339,11 +342,12 @@ searchForm.addEventListener("submit", (event) => {
   if (query.length >= 2) searchCards(query);
 });
 
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
+async function importDeck(merge) {
   message.textContent = "";
   loadButton.disabled = true;
+  mergeButton.disabled = true;
   loadButton.querySelector("span:first-child").textContent = "Loading cards…";
+  mergeButton.textContent = "Loading cards…";
 
   try {
     const groups = parseYdke(input.value);
@@ -370,9 +374,10 @@ form.addEventListener("submit", async (event) => {
       );
     }
     sections.forEach(({ key }, index) => {
-      deck[key] = groups[index];
+      deck[key] = merge ? [...deck[key], ...groups[index]] : groups[index];
     });
     renderDeck();
+    if (merge) message.textContent = "Merged YDKE cards into the existing deck.";
     document.querySelector(".editor-panel").scrollIntoView({
       behavior: "smooth",
       block: "start",
@@ -382,9 +387,18 @@ form.addEventListener("submit", async (event) => {
       error.message || "Something went wrong while loading this deck.";
   } finally {
     loadButton.disabled = false;
+    mergeButton.disabled = false;
     loadButton.querySelector("span:first-child").textContent = "Load deck";
+    mergeButton.textContent = "Merge YDKE";
   }
+}
+
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+  importDeck(false);
 });
+
+mergeButton.addEventListener("click", () => importDeck(true));
 
 function encodeSection(ids) {
   let binary = "";
@@ -407,6 +421,108 @@ exportButton.addEventListener("click", async () => {
   } catch {
     message.textContent = "Could not copy the YDKE link. Check clipboard permissions.";
   }
+});
+
+pdfButton.addEventListener("click", () => {
+  const ids = allDeckIds();
+  if (!ids.length) return;
+
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    message.textContent =
+      "Could not open the PDF export. Allow pop-ups and try again.";
+    return;
+  }
+
+  const printDocument = printWindow.document;
+  printDocument.open();
+  printDocument.write(
+    '<!doctype html><html><head><meta charset="utf-8"><title>YDKE cards</title></head><body></body></html>',
+  );
+  printDocument.close();
+
+  const style = printDocument.createElement("style");
+  style.textContent = `
+    @page { size: A4 portrait; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    .sheet {
+      width: 210mm;
+      height: 297mm;
+      display: grid;
+      grid-template-columns: repeat(3, 59mm);
+      grid-template-rows: repeat(3, 86mm);
+      gap: 0;
+      place-content: center;
+      break-after: page;
+      page-break-after: always;
+    }
+    .sheet:last-child { break-after: auto; page-break-after: auto; }
+    .card-slot { width: 59mm; height: 86mm; overflow: hidden; }
+    .card-slot img { display: block; width: 100%; height: 100%; }
+    .card-placeholder {
+      display: grid;
+      width: 100%;
+      height: 100%;
+      place-content: center;
+      border: 1px solid #999;
+      color: #555;
+      font: 10pt sans-serif;
+      text-align: center;
+    }
+    @media print {
+      html, body { width: 210mm; }
+      .sheet { margin: 0; }
+    }
+  `;
+  printDocument.head.append(style);
+
+  const imagePromises = [];
+  for (let offset = 0; offset < ids.length; offset += 9) {
+    const sheet = printDocument.createElement("main");
+    sheet.className = "sheet";
+    for (const id of ids.slice(offset, offset + 9)) {
+      const slot = printDocument.createElement("div");
+      slot.className = "card-slot";
+      const image = printDocument.createElement("img");
+      image.alt = `Card ${id}`;
+      slot.append(image);
+      imagePromises.push(
+        new Promise((resolve) => {
+          let settled = false;
+          const finish = (loaded) => {
+            if (settled) return;
+            settled = true;
+            if (!loaded) {
+              const placeholder = printDocument.createElement("div");
+              placeholder.className = "card-placeholder";
+              placeholder.textContent = `Image unavailable\\nCard ${id}`;
+              slot.replaceChildren(placeholder);
+            }
+            resolve();
+          };
+          image.onload = () => finish(true);
+          image.onerror = () => finish(false);
+          image.src = `https://images.ygoprodeck.com/images/cards/${id}.jpg`;
+          if (image.complete) finish(image.naturalWidth > 0);
+        }),
+      );
+      sheet.append(slot);
+    }
+    for (let count = Math.min(9, ids.length - offset); count < 9; count += 1) {
+      const blankSlot = printDocument.createElement("div");
+      blankSlot.className = "card-slot";
+      sheet.append(blankSlot);
+    }
+    printDocument.body.append(sheet);
+  }
+
+  message.textContent = "Preparing A4 pages with 9 cards per page…";
+  Promise.all(imagePromises).then(() => {
+    printWindow.focus();
+    printWindow.print();
+    message.textContent = "Choose Save to PDF in the print dialog.";
+  });
 });
 
 downloadButton.addEventListener("click", async () => {

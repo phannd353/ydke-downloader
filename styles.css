@@ -188,6 +188,11 @@ textarea::placeholder {
 .form-footer {
     margin-top: 15px;
 }
+.import-actions {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
 .hint {
     color: var(--muted);
     font-size: 12px;
@@ -773,6 +778,12 @@ footer {
     .primary-button {
         width: 100%;
         justify-content: space-between;
+    }
+    .import-actions {
+        width: 100%;
+    }
+    .import-actions .primary-button {
+        flex: 1;
     }
     .workspace {
         grid-template-columns: minmax(0, 1fr);
